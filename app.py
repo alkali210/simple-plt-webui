@@ -114,6 +114,7 @@ with st.sidebar:
         interp_factor = 5
         peak_prominence = 0.1
         peak_width = 0.0
+        extra_axes = []
         
         match plot_type:
             case "Histogram (直方图)":
@@ -209,6 +210,53 @@ with st.sidebar:
             with col_ylim_max:
                 y_max = st.text_input("Y Max", "")
 
+            # 多坐标轴配置 (仅限折线图/散点图)
+            if plot_type in ["Line Plot (折线图)", "Scatter Plot (散点图)"]:
+                st.markdown("---")
+                st.markdown("**多坐标轴配置 (Multi-Axis)**")
+                enable_multiaxis = st.checkbox("启用多坐标轴", False)
+                if enable_multiaxis:
+                    st.caption("添加额外的Y轴。请注意，多坐标轴模式下，图例可能需要调整位置。")
+                    
+                    # Axis 2
+                    st.markdown("#### 坐标轴 2 (Axis 2)")
+                    y_cols_2 = st.multiselect("数据列 (Axis 2)", cols, key="y_cols_2")
+                    if y_cols_2:
+                        c1, c2, c3 = st.columns([1, 1, 2])
+                        with c1:
+                            ax2_pos = st.selectbox("位置", ["Right", "Left"], index=0, key="ax2_pos")
+                        with c2:
+                            ax2_offset = st.number_input("偏移 (Offset)", value=0, step=10, key="ax2_offset")
+                        with c3:
+                            ax2_label = st.text_input("轴标签", value="Axis 2", key="ax2_label")
+                        
+                        extra_axes.append({
+                            "cols": y_cols_2,
+                            "position": ax2_pos.lower(),
+                            "offset": ax2_offset,
+                            "label": ax2_label
+                        })
+                    
+                    st.markdown("---")
+                    # Axis 3
+                    st.markdown("#### 坐标轴 3 (Axis 3)")
+                    y_cols_3 = st.multiselect("数据列 (Axis 3)", cols, key="y_cols_3")
+                    if y_cols_3:
+                        c1, c2, c3 = st.columns([1, 1, 2])
+                        with c1:
+                            ax3_pos = st.selectbox("位置", ["Right", "Left"], index=0, key="ax3_pos")
+                        with c2:
+                            ax3_offset = st.number_input("偏移 (Offset)", value=60, step=10, key="ax3_offset")
+                        with c3:
+                            ax3_label = st.text_input("轴标签", value="Axis 3", key="ax3_label")
+                        
+                        extra_axes.append({
+                            "cols": y_cols_3,
+                            "position": ax3_pos.lower(),
+                            "offset": ax3_offset,
+                            "label": ax3_label
+                        })
+
         # --- Tab 3: 全局参数 ---
         with cfg_tab3:
             col_font, col_size = st.columns(2)
@@ -253,7 +301,7 @@ with st.sidebar:
 
 # 主界面
 st.markdown("一个输入数据并绘图的简单工具, *几乎只能*用于作二维曲线图, 绘图基于[Matplotlib](https://matplotlib.org/)。, 也包括了一些`NumPy`和`SciPy`的简单数据处理功能。")
-st.markdown("[Source Code](http://rosequartz.tech:5244/shared/simple_matplotlib_webui)")
+st.markdown("[Repository](https://github.com/alkali210/simple-plt-webui)")
 
 # 使用 Tabs 分离数据视图和绘图视图
 tab1, tab2, tab3 = st.tabs(["数据表", "绘图预览", "展示代码"])
@@ -400,7 +448,8 @@ with tab2:
                               bins=current_bins, 
                               enable_interp=enable_interp, interp_kind=current_interp_kind, interp_factor=current_interp_factor,
                               enable_peaks=enable_peaks, peak_prominence=current_peak_prominence, peak_width=current_peak_width,
-                              enable_linreg=enable_linreg)
+                              enable_linreg=enable_linreg,
+                              extra_axes=extra_axes)
 
             # 坐标轴设置
             if log_x: ax.set_xscale('log')
@@ -432,7 +481,10 @@ with tab2:
                 ax.grid(True, linestyle='--', alpha=0.7)
             
             if plot_type not in ["Histogram (直方图)", "Pie Chart (饼图)", "Correlation Heatmap (相关性热力图)"] and len(y_cols) > 0 and show_legend:
-                ax.legend(loc=legend_loc)
+                if hasattr(ax, 'custom_handles') and ax.custom_handles:
+                    ax.legend(handles=ax.custom_handles, labels=ax.custom_labels, loc=legend_loc)
+                else:
+                    ax.legend(loc=legend_loc)
 
             st.pyplot(fig)
             
@@ -444,7 +496,7 @@ with tab2:
 
 with tab3:
     st.markdown("### 展示代码")
-    st.caption("以下代码可直接复制并在本地 Python 环境中运行。")
+    st.caption("以下代码可直接复制并在本地 Python 环境中运行, 以供学习参考。")
     
     df_plot = st.session_state.df
     
@@ -467,7 +519,8 @@ with tab3:
                                     show_grid=show_grid, show_legend=show_legend, legend_loc=legend_loc,
                                     log_x=log_x, log_y=log_y, invert_x=invert_x, invert_y=invert_y,
                                     x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max,
-                                    theme_style=theme_style, font_family=font_family
+                                    theme_style=theme_style, font_family=font_family,
+                                    extra_axes=extra_axes
                                 )
             
             st.code(code, language='python')

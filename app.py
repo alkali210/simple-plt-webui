@@ -272,7 +272,7 @@ with st.sidebar:
             with col_h:
                 fig_height = st.number_input("图片高度 (inch)", 3, 20, 6)
                 
-            dpi = st.slider("分辨率 (DPI)", 72, 600, 100)
+            dpi = st.slider("分辨率 (DPI)", 72, 1000, 100)
             
             st.markdown("---")
             custom_rc = st.text_area("自定义 (JSON)", placeholder='{"lines.linewidth": 2, "axes.grid": true}')
@@ -300,7 +300,7 @@ with st.sidebar:
             enable_linreg = st.checkbox("启用线性回归", False, help="仅对折线图/散点图有效")
 
 # 主界面
-st.markdown("一个输入数据并绘图的简单工具, *几乎只能*用于作二维曲线图, 绘图基于[Matplotlib](https://matplotlib.org/)。, 也包括了一些`NumPy`和`SciPy`的简单数据处理功能。")
+st.markdown("一个输入数据并绘图的简单工具, *几乎只能*用于作二维曲线图, 绘图基于[Matplotlib](https://matplotlib.org/), 也包括了一些`NumPy`和`SciPy`的简单数据处理功能。")
 st.markdown("[Repository](https://github.com/alkali210/simple-plt-webui)")
 
 # 使用 Tabs 分离数据视图和绘图视图
@@ -413,7 +413,7 @@ with tab1:
 with tab2:
     st.markdown("### 绘图预览")
     df_plot = st.session_state.df
-    st.caption("右键点击图片可以下载")
+    # st.caption("右键点击图片可以下载")
 
     if len(df_plot) > 0:
         # 创建 Matplotlib 图形
@@ -434,7 +434,7 @@ with tab2:
                 except Exception as e:
                     st.warning(f"自定义 rcParams 解析失败: {e}")
 
-            fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+            fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi)
             
             # 准备参数，处理可能未定义的变量
             current_bins = bins if 'bins' in locals() else 20
@@ -487,6 +487,19 @@ with tab2:
                     ax.legend(loc=legend_loc)
 
             st.pyplot(fig)
+            
+            # 提供高分辨率下载
+            import io
+            img_buffer = io.BytesIO()
+            fig.savefig(img_buffer, format='png', dpi=dpi, bbox_inches='tight')
+            img_buffer.seek(0)
+            
+            st.download_button(
+                label="下载 (PNG)",
+                data=img_buffer,
+                file_name="plot.png",
+                mime="image/png"
+            )
             
         except Exception as e:
             st.error(f"绘图错误: {e}")

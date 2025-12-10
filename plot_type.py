@@ -68,8 +68,8 @@ def _plot_single_series(ax, x_data, y_data, label,
                 line_x = np.array([x_clean.min(), x_clean.max()])
                 line_y = slope * line_x + intercept
                 
-                if intercept >= 0: label_text = rf"$linReg: y={slope:.4f}x+{intercept:.4f}, r={r_value:.4f}$"
-                else: label_text = rf"$linReg: y={slope:.4f}x{intercept:.4f}, r={r_value:.4f}$"
+                if intercept >= 0: label_text = rf"$linReg: y={slope:.4f}x+{intercept:.4f}, R^2={r_value**2:.4f}$"
+                else: label_text = rf"$linReg: y={slope:.4f}x{intercept:.4f}, R^2={r_value**2:.4f}$"
 
                 ax.plot(line_x, line_y, linestyle='--', linewidth=line_width, label=label_text)
         except Exception as e:
@@ -152,8 +152,8 @@ def draw_plot_content(ax, plot_type, df_plot, x_col, y_cols,
                             slope, intercept, r_value, p_value, std_err = stats.linregress(x_clean, y_clean)
                             line_x = np.array([x_clean.min(), x_clean.max()])
                             line_y = slope * line_x + intercept
-                            if intercept >= 0: label_text = rf"$linReg: y={slope:.4f}x+{intercept:.4f}, r={r_value:.4f}$"
-                            else: label_text = rf"$linReg: y={slope:.4f}x{intercept:.4f}, r={r_value:.4f}$"
+                            if intercept >= 0: label_text = rf"$linReg: y={slope:.4f}x+{intercept:.4f}, R^2={r_value**2:.4f}$"
+                            else: label_text = rf"$linReg: y={slope:.4f}x{intercept:.4f}, R^2={r_value**2:.4f}$"
                             ax.plot(line_x, line_y, linestyle='--', linewidth=line_width, label=label_text)
                     except Exception as e:
                         st.warning(f"回归分析失败 ({y_col}): {e}")

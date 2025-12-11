@@ -298,6 +298,18 @@ with st.sidebar:
             st.markdown("---")
             st.markdown("**Linear Regression**")
             enable_linreg = st.checkbox("启用线性回归", False, help="仅对折线图/散点图有效")
+            
+            # 初始化回归显示选项，避免 UnboundLocalError
+            show_linreg_eq = True
+            show_linreg_r2 = True
+            show_linreg_p_value = False
+            show_linreg_str_err = False
+            
+            if enable_linreg:
+                show_linreg_eq = st.checkbox("显示回归方程", True)
+                show_linreg_r2 = st.checkbox("显示R²", True)
+                show_linreg_p_value = st.checkbox("显示显著性水平", False)
+                show_linreg_str_err = st.checkbox("显示标准误差", False)
 
 # 主界面
 st.markdown("一个输入数据并绘图的简单工具, *几乎只能*用于作二维曲线图, 绘图基于[Matplotlib](https://matplotlib.org/), 也包括了一些`NumPy`和`SciPy`的简单数据处理功能。")
@@ -448,7 +460,7 @@ with tab2:
                               bins=current_bins, 
                               enable_interp=enable_interp, interp_kind=current_interp_kind, interp_factor=current_interp_factor,
                               enable_peaks=enable_peaks, peak_prominence=current_peak_prominence, peak_width=current_peak_width,
-                              enable_linreg=enable_linreg,
+                              enable_linreg=enable_linreg, show_linreg_eq=show_linreg_eq, show_linreg_r2=show_linreg_r2, show_linreg_p_value=show_linreg_p_value, show_linreg_str_err=show_linreg_str_err,
                               extra_axes=extra_axes)
 
             # 坐标轴设置
@@ -493,7 +505,7 @@ with tab2:
             img_buffer = io.BytesIO()
             fig.savefig(img_buffer, format='png', dpi=dpi, bbox_inches='tight')
             img_buffer.seek(0)
-            
+                           
             st.download_button(
                 label="下载 (PNG)",
                 data=img_buffer,
@@ -527,7 +539,7 @@ with tab3:
                                     bins=current_bins, 
                                     enable_interp=enable_interp, interp_kind=current_interp_kind, interp_factor=current_interp_factor,
                                     enable_peaks=enable_peaks, peak_prominence=current_peak_prominence, peak_width=current_peak_width,
-                                    enable_linreg=enable_linreg,
+                                    enable_linreg=enable_linreg, show_linreg_eq=show_linreg_eq, show_linreg_r2=show_linreg_r2, show_linreg_p_value=show_linreg_p_value, show_linreg_str_err=show_linreg_str_err,
                                     plot_title=plot_title, x_label=x_label, y_label=y_label,
                                     show_grid=show_grid, show_legend=show_legend, legend_loc=legend_loc,
                                     log_x=log_x, log_y=log_y, invert_x=invert_x, invert_y=invert_y,

@@ -3,7 +3,7 @@ def generate_plot_code(plot_type, df_plot, x_col, y_cols,
                       bins=20, 
                       enable_interp=False, interp_kind='linear', interp_factor=5,
                       enable_peaks=False, peak_prominence=0.1, peak_width=0.0,
-                      enable_linreg=False,
+                      enable_linreg=False, show_linreg_eq=True, show_linreg_r2=True, show_linreg_p_value=False, show_linreg_str_err=False,
                       plot_title="", x_label="", y_label="",
                       show_grid=True, show_legend=True, legend_loc="best",
                       log_x=False, log_y=False, invert_x=False, invert_y=False,
@@ -99,7 +99,18 @@ def generate_plot_code(plot_type, df_plot, x_col, y_cols,
             c.append(f"        slope, intercept, r_value, p_value, std_err = stats.linregress(x_clean, y_clean)")
             c.append(f"        line_x = np.array([x_clean.min(), x_clean.max()])")
             c.append(f"        line_y = slope * line_x + intercept")
-            c.append(f"        label_text = rf'$linReg: y={{slope:.4f}}x+{{intercept:.4f}}, r={{r_value:.4f}}$' if intercept >= 0 else rf'$linReg: y={{slope:.4f}}x{{intercept:.4f}}, r={{r_value:.4f}}$'")
+            
+            c.append(f"        label_parts = []")
+            if show_linreg_eq:
+                c.append(f"        label_parts.append(rf'y={{slope:.4f}}x+{{intercept:.4f}}' if intercept >= 0 else rf'y={{slope:.4f}}x{{intercept:.4f}}')")
+            if show_linreg_r2:
+                c.append(f"        label_parts.append(rf'R^2={{r_value**2:.4f}}')")
+            if show_linreg_p_value:
+                c.append(f"        label_parts.append(rf'p={{p_value:.4f}}')")
+            if show_linreg_str_err:
+                c.append(f"        label_parts.append(rf'err={{std_err:.4f}}')")
+            
+            c.append(f"        label_text = '$linReg: ' + ', '.join(label_parts) + '$'")
             c.append(f"        {ax_name}.plot(line_x, line_y, linestyle='--', linewidth={line_width}, label=label_text)")
         return c
 
@@ -143,11 +154,30 @@ def generate_plot_code(plot_type, df_plot, x_col, y_cols,
         code.append(f"y_cols = {y_cols}")
         code.append(f"for y_col in y_cols:")
         code.append(f"    ax.scatter(df['{x_col}'], df[y_col], marker='{marker_style_val}', s={marker_size}, label=y_col, alpha={alpha})")
-        # Linreg logic for scatter... omitted for brevity in generator but should be there.
-        # Assuming user wants full feature parity, I should include it.
         if enable_linreg:
-             # ... (copy linreg logic)
-             pass
+            code.append(f"    # 线性回归")
+            code.append(f"    x_data = df['{x_col}']")
+            code.append(f"    y_data = df[y_col]")
+            code.append(f"    mask = ~np.isnan(x_data) & ~np.isnan(y_data)")
+            code.append(f"    x_clean = x_data[mask]")
+            code.append(f"    y_clean = y_data[mask]")
+            code.append(f"    if len(x_clean) > 1:")
+            code.append(f"        slope, intercept, r_value, p_value, std_err = stats.linregress(x_clean, y_clean)")
+            code.append(f"        line_x = np.array([x_clean.min(), x_clean.max()])")
+            code.append(f"        line_y = slope * line_x + intercept")
+            
+            code.append(f"        label_parts = []")
+            if show_linreg_eq:
+                code.append(f"        label_parts.append(rf'y={{slope:.4f}}x+{{intercept:.4f}}' if intercept >= 0 else rf'y={{slope:.4f}}x{{intercept:.4f}}')")
+            if show_linreg_r2:
+                code.append(f"        label_parts.append(rf'R^2={{r_value**2:.4f}}')")
+            if show_linreg_p_value:
+                code.append(f"        label_parts.append(rf'p={{p_value:.4f}}')")
+            if show_linreg_str_err:
+                code.append(f"        label_parts.append(rf'err={{std_err:.4f}}')")
+            
+            code.append(f"        label_text = '$linReg: ' + ', '.join(label_parts) + '$'")
+            code.append(f"        ax.plot(line_x, line_y, linestyle='--', linewidth={line_width}, label=label_text)")
 
         if extra_axes:
             code.append("")
